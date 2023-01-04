@@ -1,8 +1,6 @@
-from user import User
-from transaction import Transaction
-from Crypto.PublicKey import RSA
-from blockchain import BlockchainHandler
-from pprint import pprint
+from users.user import User
+from node_server.transaction import Transaction
+from node_server.blockchain import BlockchainHandler
 
 # Create blockchain
 cryptoCoin = BlockchainHandler.from_file("index_test.json")
@@ -13,20 +11,22 @@ miner1 = User.from_folder("users/miner1")
 miner2 = User.from_folder("users/miner1")
 
 # Do mining
-for i in range(10):
-    cryptoCoin.mine_pending_transactions(esantix)
+for i in range(4):
+    miner1.request_mineable_block(cryptoCoin)
 
 # Create signed transactions
-tx1 = Transaction(to_user=miner1, from_user=esantix, amount=4).sign_transaction(esantix)
-cryptoCoin.add_transaction(tx1)
+tx1 = Transaction(to_user=esantix, from_user=miner1, amount=2)
+esantix.add_tx_to_chain(tx1, cryptoCoin)
 
 # More mining
-cryptoCoin.mine_pending_transactions(miner2)
+miner2.request_mineable_block(cryptoCoin)
+
 
 # Show chain
 cryptoCoin.show()
 
 
 # Get balance
+print("\nBalance:")
 balance = cryptoCoin.get_balance()
-pprint(balance)
+print(balance)
