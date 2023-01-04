@@ -1,0 +1,9 @@
+{
+    "blocks": {},
+    "metadata": {
+        "difficulty": 4,
+        "reward": 1,
+        "priv_key": "storage/keys/private_key.pem",
+        "folder": "storage/blocks/"
+    }
+}
