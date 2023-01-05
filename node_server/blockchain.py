@@ -1,6 +1,6 @@
 import json
-from node_server.block import Block
-from node_server.transaction import Transaction
+from block import Block
+from transaction import Transaction
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -13,52 +13,35 @@ class BlockchainHandler:
     def from_file(path):
         """_summary_
 
-        Args:
-            path (_type_): _description_
-
-        Returns:
-            _type_: _description_
         """
         with open(path, "r", encoding='utf-8') as index:
             data = json.load(index)
 
             return BlockchainHandler(
-                priv_key=data["metadata"]["priv_key"], 
-                difficulty=data["metadata"]["difficulty"], 
-                reward=data["metadata"]["reward"], 
+                data= data,
+                priv_key=data["metadata"]["priv_key"],
+                difficulty=data["metadata"]["difficulty"],
+                reward=data["metadata"]["reward"],
                 folder=data["metadata"]["folder"],
                 name=data["metadata"]["name"])
 
 
-    def __init__(self, priv_key, difficulty=4, reward=10, folder=".", name="chain"):
+    def __init__(self, data, priv_key, difficulty=4, reward=10, folder=".", name="chain"):
         self.difficulty = difficulty
-        self.chain = []
         self.pending_transactions = []
         self.mining_reward = reward
-
-
         self.pub_key =""
         self.name = name
         self.priv_key = priv_key
-
         self.blocks_path = folder
         self.index_file_path = folder + "/index.json"
-        self.index = {
-            "blocks": {},
-            "metadata": {"difficulty": self.difficulty, 
-                         "reward": self.mining_reward},
-                         "priv_key":priv_key,
-                         "folder": folder,
-                         "name": self.name
+        self.index = data
+    
 
-        }
-        self.create_genesis()
-
-        self.update_index()
 
     def update_index(self):
         with open(self.index_file_path, "w") as index_file:
-            json.dump(self.index, index_file)
+            json.dump(self.index, index_file, indent=4)
 
     def add_transaction(self, transaction):
         """Add transaction to pending list"""
@@ -81,25 +64,27 @@ class BlockchainHandler:
         gen_block = Block([], 0)
         gen_block.hash = gen_block.calculateHash()
         path = gen_block.save(self.blocks_path)
-        self.index["blocks"]["00"] = path
+        self.index["blocks"]["0"] = path
         self.update_index()
-        self.chain.append(path)
+        self.index["blocks"].append(path)
+
 
 
 
     def give_block_with_transaction(self):
         """Trigger mining"""
-        block = Block(transactions=self.pending_transactions)
-        block.previousHash = self.get_block(len(self.chain) - 1).hash
-        block.index = len(self.chain)
+        txs = [tx.to_dict() for tx in self.pending_transactions]
+        block = Block(transactions=txs, difficulty=self.difficulty)
+        block.previousHash = self.get_block(len(self.index["blocks"]) - 1).hash
+        block.index = len(self.index["blocks"])
 
         return block
 
+    # TODO; make API call
     def recieve_mined_block(self, mined_block, miner_user):
-
-        path = mined_block.save(self.blocks_path)
-        self.index["blocks"][mined_block.index] = path
-        self.chain.append(path)
+        print("Recieved block!")
+        path = mined_block.save(self.blocks_path + "/blocks" )
+        self.index["blocks"].append(path)
         self.update_index()
 
         reward_tx = Transaction(
@@ -110,9 +95,11 @@ class BlockchainHandler:
         ).sign_transaction(self.priv_key)
 
         self.pending_transactions = [reward_tx]
+        print(self.pending_transactions)
+        # self.pending_transactions = [{}]
 
     def get_block(self, idx):
-        return Block.load(self.chain[idx])
+        return Block.load(self.index["blocks"][idx])
 
     def is_tx_valid(self, transaction):
         """Check if transaction is valid in chain"""
@@ -152,9 +139,12 @@ class BlockchainHandler:
     def get_balance(self):
         """Get balance of all users"""
         balance = {}
-        for i in range(len(self.chain)):
+        self.is_valid()
+        for i in range(len(self.index["blocks"])):
             block = self.get_block(i)
-            for transaction in block.transactions:
+            print(block.transactions)
+            for tx in block.transactions:
+                transaction = Transaction.from_dict(tx)
                 to_user_name = transaction.to_user_name
                 from_user_name = transaction.from_user_name
 
@@ -170,7 +160,7 @@ class BlockchainHandler:
 
     def show(self):
         """Show all chain"""
-        for i in range(len(self.chain)):
+        for i in range(len(self.index["blocks"])):
             block = self.get_block(i)
             block.show()
 
@@ -180,7 +170,7 @@ class BlockchainHandler:
 
     def is_valid(self):
         """Check chain validity"""
-        for i in range(1, len(self.chain)):
+        for i in range(1, len(self.index["blocks"])):
             block = self.get_block(i)
             if block.hash != block.calculateHash():
                 print(f"block {block} hash invalid {block.hash}")

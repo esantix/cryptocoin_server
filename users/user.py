@@ -1,5 +1,9 @@
 import json
 import time
+import requests
+from node_server.block import Block
+from pprint import pprint
+
 
 class User:
     def __init__(self, name, pub_key, priv_key) -> None:
@@ -21,18 +25,27 @@ class User:
 
     # TODO: replace with API call
     def request_mineable_block(self, chain):
-        block = chain.give_block_with_transaction()
-        
+        response = requests.get(f'{chain}/transactions')
+        content = json.loads(response.content)
+        a = content["transactions"]
+        parsed_cnt = content
+        parsed_cnt["transactions"] = [json.loads(t) for t in a]
+        block = Block.from_dict(parsed_cnt)
         start = time.time()
-        block.mineBlock(difficulty=chain.difficulty)
+        block.mineBlock()
         end = time.time()
+
         print(f"Block {block.hash[0:10]}... mined by {self.name} in {end - start :.5f}ms")
 
         return self.push_mined_block(block, chain)
     
     # TODO: replace with API call
     def push_mined_block(self, block, chain):
-        chain.recieve_mined_block(block, self)
+        requests.post(f'{chain}/block', data={
+            "block":block.to_dict()
+             ,"user":self.name
+         }
+         )
         return
 
     # TODO: replace with API call
