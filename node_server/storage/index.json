@@ -1,9 +1,0 @@
-{
-    "metadata": {
-        "name": "esantixCOIN",
-        "difficulty": 4,
-        "reward": 1,
-        "priv_key": "node_server/storage/keys/private_key.pem",
-        "folder": "node_server/storage/"
-    }
-}

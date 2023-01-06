@@ -2,12 +2,10 @@
 """
 
 import json
-from pprint import pprint
 import requests
-import time
 import multiprocessing as mp
 
-from user import User
+from src.user import User
 
 # Create blockchain
 NODE_ADDR = "http://localhost:5000"
@@ -17,13 +15,12 @@ def start_mining(user):
     while True:
         user.mine(chain=NODE_ADDR)
         print(json.loads(requests.get(f'{NODE_ADDR}/balance').content))
-        time.sleep(3)
-
+        # time.sleep(10/user.speed)
 
 
 if __name__ == "__main__":
-    users = [User.from_folder("users/esantix"),
-            User.from_folder("users/miner1")]
+    users = [User.from_file("tests/users/esantix.json"),
+             User.from_file("tests/users/miner1.json")]
 
     ps = []
     for u in users:

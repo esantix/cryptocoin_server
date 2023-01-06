@@ -1,0 +1,4 @@
+{
+    "alias":"Miner",
+    "private":"/Users/sechevar/blockchain/cryptocoin_server/tests/users/miner_priv.pem",
+    "public":"/Users/sechevar/blockchain/cryptocoin_server/tests/users/miner_pub.pem"}

@@ -1,10 +1,12 @@
 from flask import Flask, request
-from blockchain import BlockchainHandler
-from block import Block
-import json
+from src.blockchain_handler import BlockchainHandler
+from src.block import Block
+from src.user import User
+
 app = Flask(__name__)
 
-cryptoCoin = BlockchainHandler.from_file("node_server/storage/index.json")
+user = User.from_file("tests/users/esantix.json")
+cryptoCoin = BlockchainHandler("tests/node_server/", user)
 
 
 
@@ -18,8 +20,11 @@ def put_block():
     data = request.json
 
     block_dict = Block.from_dict(data["block"])
-    user = data["user"]
-    added = cryptoCoin.recieve_mined_block(block_dict,user)
+
+    cryptoCoin.new_subscriber(data["alias"], data["key"])
+    added = cryptoCoin.recieve_mined_block(block_dict)
+
+    
 
     return {"status": added}
 
