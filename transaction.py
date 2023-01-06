@@ -12,23 +12,24 @@ class Transaction:
 
     @staticmethod
     def from_dict(dict):
-        print(dict)
         return Transaction(
             to_user=dict["to_user_name"],
             from_user=dict["from_user_name"],
             amount=dict["amount"],
             internal=dict["internal"],
-            signature=dict["signatue"]
+            signature=dict["signatue"],
+            uuid=dict["uuid"],
         )
 
-    def __init__(self, to_user, from_user=None, amount=0, internal=False, signature=None):
+    def __init__(self, to_user, uuid, from_user=None, amount=0, internal=False, signature=None):
         self.to_user_name = to_user
         self.to_user_address = to_user
-        self.from_user_name = from_user.name if not type(from_user)==str else from_user
-        self.from_user_address = from_user.address if  not type(from_user)==str else from_user
+        self.from_user_name = from_user.name if from_user is not None else None
+        self.from_user_address = from_user.address if  from_user is not None else None
         self.amount = amount
         self.internal = internal
         self.signatue = signature
+        self.uuid = uuid
 
     def calculate_hash(self):
         """Get hash of transaction"""
@@ -49,7 +50,7 @@ class Transaction:
         return self
 
     def to_dict(self):
-        return json.dumps(self.__dict__)
+        return self.__dict__
 
     def __repr__(self) -> str:
         return f"Transfer: {self.from_user_name} -> {self.to_user_name} : {self.amount}"

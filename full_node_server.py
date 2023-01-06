@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from blockchain import BlockchainHandler
 from block import Block
 import json
 app = Flask(__name__)
 
-cryptoCoin = BlockchainHandler.from_file("storage/index.json")
+cryptoCoin = BlockchainHandler.from_file("node_server/storage/index.json")
 
 
 
@@ -15,14 +15,13 @@ def get_transactions():
 
 @app.route('/block', methods=['POST'])
 def put_block():
-    data = request
-    b = json.loads(data.values.get('block'))
+    data = request.json
 
-    u = data.values.get('user')
-    bl = Block.from_dict(b)
-    cryptoCoin.recieve_mined_block(bl,u)
+    block_dict = Block.from_dict(data["block"])
+    user = data["user"]
+    added = cryptoCoin.recieve_mined_block(block_dict,user)
 
-    return {}
+    return {"status": added}
 
 @app.route('/balance')
 def get_balance():

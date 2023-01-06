@@ -4,44 +4,35 @@ from transaction import Transaction
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-
+from glob import glob
 
 class BlockchainHandler:
     """Chain of linked Blocks"""
 
     @staticmethod
     def from_file(path):
-        """_summary_
-
-        """
+        """. """
         with open(path, "r", encoding='utf-8') as index:
             data = json.load(index)
 
             return BlockchainHandler(
-                data= data,
+                data=data,
                 priv_key=data["metadata"]["priv_key"],
                 difficulty=data["metadata"]["difficulty"],
                 reward=data["metadata"]["reward"],
                 folder=data["metadata"]["folder"],
                 name=data["metadata"]["name"])
 
-
     def __init__(self, data, priv_key, difficulty=4, reward=10, folder=".", name="chain"):
         self.difficulty = difficulty
         self.pending_transactions = []
         self.mining_reward = reward
-        self.pub_key =""
+        self.pub_key = ""
         self.name = name
         self.priv_key = priv_key
-        self.blocks_path = folder
-        self.index_file_path = folder + "/index.json"
-        self.index = data
-    
+        self.blocks_path = folder + "/blocks/"
 
 
-    def update_index(self):
-        with open(self.index_file_path, "w") as index_file:
-            json.dump(self.index, index_file, indent=4)
 
     def add_transaction(self, transaction):
         """Add transaction to pending list"""
@@ -63,43 +54,54 @@ class BlockchainHandler:
         """Create genesis block"""
         gen_block = Block([], 0)
         gen_block.hash = gen_block.calculateHash()
-        path = gen_block.save(self.blocks_path)
-        self.index["blocks"]["0"] = path
-        self.update_index()
-        self.index["blocks"].append(path)
-
-
+        gen_block.save(self.blocks_path)
 
 
     def give_block_with_transaction(self):
-        """Trigger mining"""
-        txs = [tx.to_dict() for tx in self.pending_transactions]
-        block = Block(transactions=txs, difficulty=self.difficulty)
-        block.previousHash = self.get_block(len(self.index["blocks"]) - 1).hash
-        block.index = len(self.index["blocks"])
-
+        """Trigger mining""" 
+        number = self.length
+        block = Block(transactions=self.pending_transactions, difficulty=self.difficulty, number=number)
+        block.previous_hash = self.get_block(number - 1).hash
         return block
+
+    def remove_tx_by_uuid(self, uuid):
+        for tx in self.pending_transactions:
+            if tx.uuid == uuid:
+                self.pending_transactions.remove(tx)
 
     # TODO; make API call
     def recieve_mined_block(self, mined_block, miner_user):
-        print("Recieved block!")
-        path = mined_block.save(self.blocks_path + "/blocks" )
-        self.index["blocks"].append(path)
-        self.update_index()
 
-        reward_tx = Transaction(
-            to_user=miner_user,
-            from_user=self.name,
-            amount=self.mining_reward,
-            internal=True,
-        ).sign_transaction(self.priv_key)
+        if mined_block.previous_hash != self.get_block(self.length-1).hash:
+            print(f"Invalid block by {miner_user}")
+            return False
+        else:
+            mined_block.save(self.blocks_path)
+            for tx in mined_block.transactions:
+                self.remove_tx_by_uuid(tx.uuid)
 
-        self.pending_transactions = [reward_tx]
-        print(self.pending_transactions)
-        # self.pending_transactions = [{}]
+            reward_tx = Transaction(
+                uuid=mined_block.hash,
+                to_user=miner_user,
+                from_user=None,
+                amount=self.mining_reward,
+                internal=True,
+            ).sign_transaction(self.priv_key)
+
+            self.pending_transactions.append(reward_tx)
+            print(f"Recieved valid block. Rewarding: {reward_tx}")
+            return True
+
+
 
     def get_block(self, idx):
-        return Block.load(self.index["blocks"][idx])
+        file_dir = glob(f'{self.blocks_path}/{idx}_**')[0]
+        return Block.load(file_dir)
+
+    @property
+    def length(self):
+        blocks_dirs = glob(f'{self.blocks_path}/**')
+        return len(blocks_dirs)
 
     def is_tx_valid(self, transaction):
         """Check if transaction is valid in chain"""
@@ -125,8 +127,8 @@ class BlockchainHandler:
 
         sig = bytes.fromhex(hexsig)  # convert string to bytes object
 
-        with open(pub_key_str, "r") as f:
-            pub_key_str= f.read()
+        with open(pub_key_str, "r", encoding="utf-8") as f:
+            pub_key_str = f.read()
 
         public_key = RSA.importKey(pub_key_str)
         verifier = PKCS1_v1_5.new(public_key)
@@ -139,28 +141,33 @@ class BlockchainHandler:
     def get_balance(self):
         """Get balance of all users"""
         balance = {}
-        self.is_valid()
-        for i in range(len(self.index["blocks"])):
+        # self.is_valid()
+        for i in range(self.length):
             block = self.get_block(i)
-            print(block.transactions)
+
+
             for tx in block.transactions:
-                transaction = Transaction.from_dict(tx)
+                transaction = tx
                 to_user_name = transaction.to_user_name
                 from_user_name = transaction.from_user_name
 
                 if to_user_name not in balance.keys():
                     balance[to_user_name] = 0
-                if from_user_name not in balance.keys():
-                    balance[from_user_name] = 0
-
                 balance[to_user_name] += transaction.amount
-                balance[from_user_name] -= transaction.amount
+
+                if from_user_name is None:
+                    pass
+                else:
+                    if from_user_name not in balance.keys():
+                        balance[from_user_name] = 0
+                    balance[from_user_name] -= transaction.amount
+
 
         return balance
 
     def show(self):
         """Show all chain"""
-        for i in range(len(self.index["blocks"])):
+        for i in range(self.length):
             block = self.get_block(i)
             block.show()
 
@@ -170,15 +177,16 @@ class BlockchainHandler:
 
     def is_valid(self):
         """Check chain validity"""
-        for i in range(1, len(self.index["blocks"])):
+        for i in range(1, self.length):
             block = self.get_block(i)
             if block.hash != block.calculateHash():
                 print(f"block {block} hash invalid {block.hash}")
                 print(block.calculateHash())
                 return False
 
-            if block.previousHash != self.get_block(i - 1).hash:
-                print(f"block {block} invalid previousHash {block.previousHash}")
+            if block.previous_hash != self.get_block(i - 1).hash:
+                print(
+                    f"block {block} invalid previous_hash {block.previous_hash}")
                 return False
 
         return True

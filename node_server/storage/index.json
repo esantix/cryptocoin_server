@@ -1,35 +1,9 @@
 {
-    "blocks": [
-        "storage//blocks/1d9adcfcecb772392a556955d2abb4893b8892e9a9ca4d7dcb84af4d8202e09d",
-        "storage//blocks/00002e2bb4895972843f1dd24a4bfe8ec946cccf0728f2642fe487e625756ad0",
-        "storage//blocks/00004ef1b2a6c6d52a8f79b247311a341318b6cc17bc63a03b16aea5475ff9de",
-        "storage//blocks/000016cf7003115e2912b16a9258cfb537a55bdcc8c5bbd8dd4a3f9ac3a2b8e8",
-        "storage//blocks/00000ab4f5979ddc025ee81bde1beaa63d58c13be7efec3a191fe53f5375ba9e",
-        "storage//blocks/0000e44bd93a1428543d3a9fd596c2a29dc667b15d1d166dc0fed4e1bdc6c405",
-        "storage//blocks/0000c70d7fbe378a17575e7a8d34c822f30238caefed6426f1046aa54318be88",
-        "storage//blocks/0000c0281009bfdb8f6f2983687bd042a4994155013e3a7f6eafc395e40bb901",
-        "storage//blocks/000002fb6b9ef8a50828ad26052d0f5feebb8daba1ba3d6a4c3d8ad73af19a21",
-        "storage//blocks/00007e238ef03a966b721aa6070c4699b47e95c1b68770244627215bd83753fa",
-        "storage//blocks/0000423bb974a330d19dcefa1c1a7c3669c5faddababd9469042dfc6c936d282",
-        "storage//blocks/00004dfd7c6cdeb914c63f01787c2e12811b9518c3f6debd43cbda54c871b7f0",
-        "storage//blocks/0000bbe9b3408305a0653fbb16bcdecf91b55a23260e03fd00691a0fef934360",
-        "storage//blocks/00007091fe247656218c8bba8f2d02f517bda54822a9a25143531a396df491a4",
-        "storage//blocks/000074f588ced551bcc9fae3d0bc413b724e725325dc97b1e9711310f9f425de",
-        "storage//blocks/000042b84a55c1feb039e65c8792a7ffd04bf384ca950895f766cf65ab90e8ce",
-        "storage//blocks/0000ca1e34456ad7342d8035bf20aa720c528551eace84d657cdeb54774bc772",
-        "storage//blocks/0000598e0dd780c41209ab04d736ba0f0ab66c68cff8562a0478c2f2ce139504",
-        "storage//blocks/0000c4366e28dd88366465dca73f250401b5232539afa604478d634373ae97a4",
-        "storage//blocks/00002e013923d2181a3169d1c8c1f5de6fa8313b3c0906f1250765c7affa47f0",
-        "storage//blocks/0000567bbdbba99aeb131d92e379c16f610a5ea35dafba1dd6f67cbe29888829",
-        "storage//blocks/00000ce22f41437630929eb6a9bb25cf664330fda27692b62a96cba66ca26dd3",
-        "storage//blocks/0000d2b75334fec35a30a6acc953ed7b409832dc3ed16f7c772c7ec384f9af59",
-        "storage//blocks/0000a09352cb6de04e4ca959a68b151167001998cfd82ec4a82570b87e671baa"
-    ],
     "metadata": {
         "name": "esantixCOIN",
         "difficulty": 4,
         "reward": 1,
-        "priv_key": "storage/keys/private_key.pem",
-        "folder": "storage/"
+        "priv_key": "node_server/storage/keys/private_key.pem",
+        "folder": "node_server/storage/"
     }
 }
